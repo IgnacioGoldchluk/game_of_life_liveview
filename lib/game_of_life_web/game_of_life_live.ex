@@ -13,6 +13,7 @@ defmodule GameOfLifeWeb.GameOfLifeLive do
         Pause
       <% end %>
     </.button>
+    <.button phx-click="clear">Clear</.button>
     <svg width={@canvas_size} height={@canvas_size}>
       <%= for {{x, y}, alive} <- @grid do %>
         <rect
@@ -44,6 +45,11 @@ defmodule GameOfLifeWeb.GameOfLifeLive do
   @impl true
   def handle_event("pause", _, %{assigns: %{pause: pause}} = socket) do
     {:noreply, assign(socket, :pause, not pause)}
+  end
+
+  @impl true
+  def handle_event("clear", _, %{assigns: %{size: size}} = socket) do
+    {:noreply, assign(socket, :grid, Rules.grid(size))}
   end
 
   @impl true
