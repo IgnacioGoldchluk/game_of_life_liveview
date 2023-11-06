@@ -6,6 +6,13 @@ defmodule GameOfLifeWeb.GameOfLifeLive do
   @impl true
   def render(assigns) do
     ~H"""
+    <.button phx-click="pause">
+      <%= if @pause do %>
+        Continue
+      <% else %>
+        Pause
+      <% end %>
+    </.button>
     <svg width={@canvas_size} height={@canvas_size}>
       <%= for {{x, y}, alive} <- @grid do %>
         <rect
@@ -13,7 +20,7 @@ defmodule GameOfLifeWeb.GameOfLifeLive do
           y={y * @cell_size}
           width={@cell_size}
           height={@cell_size}
-          style={"fill:rgb#{cell_color(alive)};stroke-width:3;stroke:rgb(128,128,128)"}
+          style={"fill:rgb#{cell_color(alive)};stroke-width:1;stroke:rgb(128,128,128)"}
         />
       <% end %>
     </svg>
@@ -27,6 +34,7 @@ defmodule GameOfLifeWeb.GameOfLifeLive do
       |> assign(size: String.to_integer(size))
       |> assign_grid()
       |> assign_sizes()
+      |> assign(:pause, false)
 
     Process.send_after(self(), "update", 1_000)
 
@@ -34,9 +42,15 @@ defmodule GameOfLifeWeb.GameOfLifeLive do
   end
 
   @impl true
-  def handle_info("update", %{assigns: %{grid: grid}} = socket) do
+  def handle_event("pause", _, %{assigns: %{pause: pause}} = socket) do
+    {:noreply, assign(socket, :pause, not pause)}
+  end
+
+  @impl true
+  def handle_info("update", %{assigns: %{grid: grid, pause: pause}} = socket) do
     Process.send_after(self(), "update", 1_000)
-    {:noreply, assign(socket, :grid, Rules.step(grid))}
+    new_grid = if(pause, do: grid, else: Rules.step(grid))
+    {:noreply, assign(socket, :grid, new_grid)}
   end
 
   defp assign_sizes(%{assigns: %{size: size}} = socket) do
