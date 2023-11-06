@@ -17,9 +17,7 @@ defmodule GameOfLifeWeb.Router do
   scope "/", GameOfLifeWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
-
-    live "/game-of-life/:size", GameOfLifeLive, :show
+    live "/", GameOfLifeLive, :show
   end
 
   # Other scopes may use custom stacks.

@@ -46,16 +46,23 @@ defmodule GameOfLifeWeb.GameOfLifeLive do
         <.button>Advance steps</.button>
       </.form>
     </div>
+    <div class="max-w-xs">
+      <.form :let={_form} for={@size_form} phx-submit="change_size">
+        <.input type="number" name="new_size" value={@size_form["size"]} />
+        <.button>Change size</.button>
+      </.form>
+    </div>
     """
   end
 
   @impl true
-  def mount(%{"size" => size}, _session, socket) do
+  def mount(_params, _session, socket) do
     socket =
       socket
-      |> assign(size: String.to_integer(size))
+      |> assign(size: 10)
       |> assign_grid()
       |> assign_sizes()
+      |> assign_size_form()
       |> assign(:pause, false)
       |> assign(:refresh_rate_ms, 300)
       |> assign(:min_rate, @min_refresh_rate_ms)
@@ -65,6 +72,20 @@ defmodule GameOfLifeWeb.GameOfLifeLive do
     Process.send_after(self(), "update", socket.assigns.refresh_rate_ms)
 
     {:ok, socket}
+  end
+
+  defp assign_size_form(%{assigns: %{size: size}} = socket) do
+    assign(socket, :size_form, %{"size" => size})
+  end
+
+  @impl true
+  def handle_event("change_size", %{"new_size" => new_size}, socket) do
+    {:noreply,
+     socket
+     |> assign(size: String.to_integer(new_size))
+     |> assign_grid()
+     |> assign_sizes()
+     |> assign_size_form()}
   end
 
   @impl true
