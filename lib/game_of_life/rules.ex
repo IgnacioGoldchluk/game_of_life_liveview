@@ -24,6 +24,9 @@ defmodule GameOfLife.Rules do
     |> Enum.into(Map.new())
   end
 
+  def steps(grid, number) when number <= 0, do: grid
+  def steps(grid, number), do: steps(step(grid), number - 1)
+
   def toggle(grid, coords), do: Map.update!(grid, coords, &toggle_alive/1)
 
   defp toggle_alive(1), do: 0

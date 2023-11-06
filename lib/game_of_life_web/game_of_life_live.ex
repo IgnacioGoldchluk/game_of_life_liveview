@@ -39,6 +39,12 @@ defmodule GameOfLifeWeb.GameOfLifeLive do
         />
       <% end %>
     </svg>
+    <div class="max-w-xs">
+      <.form :let={_form} for={@steps} phx-submit="advance_steps">
+        <.input type="number" name="steps" value={@steps["steps"]} />
+        <.button>Advance steps</.button>
+      </.form>
+    </div>
     """
   end
 
@@ -53,6 +59,7 @@ defmodule GameOfLifeWeb.GameOfLifeLive do
       |> assign(:refresh_rate_ms, 300)
       |> assign(:min_rate, @min_refresh_rate_ms)
       |> assign(:max_rate, @max_refresh_rate_ms)
+      |> assign(:steps, %{"steps" => 0})
 
     Process.send_after(self(), "update", socket.assigns.refresh_rate_ms)
 
@@ -87,6 +94,12 @@ defmodule GameOfLifeWeb.GameOfLifeLive do
   def handle_event("slower", _, %{assigns: %{refresh_rate_ms: rate}} = socket) do
     {:noreply,
      assign(socket, :refresh_rate_ms, min(rate + @refresh_rate_diff, @max_refresh_rate_ms))}
+  end
+
+  @impl true
+  def handle_event("advance_steps", %{"steps" => val}, %{assigns: %{grid: grid}} = socket) do
+    steps = String.to_integer(val)
+    {:noreply, assign(socket, :grid, Rules.steps(grid, steps))}
   end
 
   @impl true
