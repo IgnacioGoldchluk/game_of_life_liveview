@@ -3,6 +3,10 @@ defmodule GameOfLifeWeb.GameOfLifeLive do
 
   alias GameOfLife.Rules
 
+  @max_refresh_rate_ms 5_000
+  @min_refresh_rate_ms 100
+  @refresh_rate_diff 200
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -14,6 +18,12 @@ defmodule GameOfLifeWeb.GameOfLifeLive do
       <% end %>
     </.button>
     <.button phx-click="clear">Clear</.button>
+    <.button class="disabled:opacity-25" phx-click="faster" disabled={@refresh_rate_ms == @min_rate}>
+      Faster
+    </.button>
+    <.button class="disabled:opacity-25" phx-click="slower" disabled={@refresh_rate_ms == @max_rate}>
+      Slower
+    </.button>
     <svg width={@canvas_size} height={@canvas_size}>
       <%= for {{x, y}, alive} <- @grid do %>
         <rect
@@ -39,8 +49,11 @@ defmodule GameOfLifeWeb.GameOfLifeLive do
       |> assign_grid()
       |> assign_sizes()
       |> assign(:pause, false)
+      |> assign(:refresh_rate_ms, 300)
+      |> assign(:min_rate, @min_refresh_rate_ms)
+      |> assign(:max_rate, @max_refresh_rate_ms)
 
-    Process.send_after(self(), "update", 1_000)
+    Process.send_after(self(), "update", socket.assigns.refresh_rate_ms)
 
     {:ok, socket}
   end
@@ -64,18 +77,30 @@ defmodule GameOfLifeWeb.GameOfLifeLive do
   end
 
   @impl true
+  def handle_event("faster", _, %{assigns: %{refresh_rate_ms: rate}} = socket) do
+    {:noreply,
+     assign(socket, :refresh_rate_ms, max(rate - @refresh_rate_diff, @min_refresh_rate_ms))}
+  end
+
+  @impl true
+  def handle_event("slower", _, %{assigns: %{refresh_rate_ms: rate}} = socket) do
+    {:noreply,
+     assign(socket, :refresh_rate_ms, min(rate + @refresh_rate_diff, @max_refresh_rate_ms))}
+  end
+
+  @impl true
   def handle_info("update", %{assigns: %{grid: grid, pause: pause}} = socket) do
-    Process.send_after(self(), "update", 1_000)
+    Process.send_after(self(), "update", socket.assigns.refresh_rate_ms)
     new_grid = if(pause, do: grid, else: Rules.step(grid))
     {:noreply, assign(socket, :grid, new_grid)}
   end
 
   defp assign_sizes(%{assigns: %{size: size}} = socket) do
-    canvas_size = max(10 * size, 400)
+    canvas_size = max(15 * size, 400)
 
     socket
     |> assign(:canvas_size, canvas_size)
-    |> assign(:cell_size, max(10, div(canvas_size, size)))
+    |> assign(:cell_size, max(15, div(canvas_size, size)))
   end
 
   defp assign_grid(%{assigns: %{size: size}} = socket) do
