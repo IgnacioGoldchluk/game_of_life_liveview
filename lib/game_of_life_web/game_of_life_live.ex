@@ -17,6 +17,9 @@ defmodule GameOfLifeWeb.GameOfLifeLive do
     <svg width={@canvas_size} height={@canvas_size}>
       <%= for {{x, y}, alive} <- @grid do %>
         <rect
+          phx-click="toggle"
+          phx-value-x={x}
+          phx-value-y={y}
           x={x * @cell_size}
           y={y * @cell_size}
           width={@cell_size}
@@ -50,6 +53,14 @@ defmodule GameOfLifeWeb.GameOfLifeLive do
   @impl true
   def handle_event("clear", _, %{assigns: %{size: size}} = socket) do
     {:noreply, assign(socket, :grid, Rules.grid(size))}
+  end
+
+  @impl true
+  def handle_event("toggle", %{"x" => x, "y" => y}, %{assigns: %{grid: grid}} = socket) do
+    x = String.to_integer(x)
+    y = String.to_integer(y)
+
+    {:noreply, assign(socket, :grid, Rules.toggle(grid, {x, y}))}
   end
 
   @impl true

@@ -24,6 +24,11 @@ defmodule GameOfLife.Rules do
     |> Enum.into(Map.new())
   end
 
+  def toggle(grid, coords), do: Map.update!(grid, coords, &toggle_alive/1)
+
+  defp toggle_alive(1), do: 0
+  defp toggle_alive(0), do: 1
+
   defp neighbors_indices({x, y}) do
     [
       {x - 1, y - 1},
