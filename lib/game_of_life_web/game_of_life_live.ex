@@ -25,6 +25,7 @@ defmodule GameOfLifeWeb.GameOfLifeLive do
     <.button class="disabled:opacity-25" phx-click="slower" disabled={@refresh_rate_ms == @max_rate}>
       Slower
     </.button>
+    <.button phx-click="reset">Reset</.button>
     <svg width={@canvas_size} height={@canvas_size}>
       <%= for {{x, y}, alive} <- @grid do %>
         <rect
@@ -100,6 +101,11 @@ defmodule GameOfLifeWeb.GameOfLifeLive do
   def handle_event("advance_steps", %{"steps" => val}, %{assigns: %{grid: grid}} = socket) do
     steps = String.to_integer(val)
     {:noreply, assign(socket, :grid, Rules.steps(grid, steps))}
+  end
+
+  @impl true
+  def handle_event("reset", _, socket) do
+    {:noreply, socket |> assign_grid()}
   end
 
   @impl true
