@@ -10,6 +10,7 @@ defmodule GameOfLifeWeb.GameOfLifeLive do
   @impl true
   def render(assigns) do
     ~H"""
+    <div class="text-xl">Click on a cell to toggle its alive status</div>
     <.button phx-click="pause">
       <%= if @pause do %>
         Continue
@@ -96,7 +97,7 @@ defmodule GameOfLifeWeb.GameOfLifeLive do
   end
 
   defp assign_sizes(%{assigns: %{size: size}} = socket) do
-    canvas_size = max(15 * size, 400)
+    canvas_size = max(15 * size, 600)
 
     socket
     |> assign(:canvas_size, canvas_size)
