@@ -80,12 +80,18 @@ defmodule GameOfLifeWeb.GameOfLifeLive do
 
   @impl true
   def handle_event("change_size", %{"new_size" => new_size}, socket) do
-    {:noreply,
-     socket
-     |> assign(size: String.to_integer(new_size))
-     |> assign_grid()
-     |> assign_sizes()
-     |> assign_size_form()}
+    new_size = String.to_integer(new_size)
+
+    if Enum.member?(1..50, new_size) do
+      {:noreply,
+       socket
+       |> assign(size: new_size)
+       |> assign_grid()
+       |> assign_sizes()
+       |> assign_size_form()}
+    else
+      {:noreply, socket |> put_flash(:error, "Size must be between 1 and 50")}
+    end
   end
 
   @impl true
